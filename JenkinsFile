@@ -25,7 +25,7 @@ pipeline{
         }
         stage('build the code')
          {
-                 
+            steps{   
             rtMavenRun (
                     // Tool name from Jenkins configuration.
                     tool: 'mvn_tool',
@@ -34,6 +34,7 @@ pipeline{
                     // Maven options.
                     deployerId: 'spc-deployer',
                 )
+            }
          }
        stage('reporting'){
            steps{
