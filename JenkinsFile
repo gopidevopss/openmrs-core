@@ -12,28 +12,36 @@ pipeline{
             branch: 'master'
            }
        }
-       stage('build the package with sonarqube'){
-           steps{
-           withSonarQubeEnv('sonar') {
-                sh 'mvn clean  package sonar:sonar'
-              }
-           }
-       }
-        
-         
+        stage('Artifactory-Configuration') {
+            steps {
+                rtMavenDeployer (
+                    id: 'spc-deployer',
+                    serverId: 'JFROG_INSTANCE',
+                    releaseRepo: 'qtecomm-libs-release-local',
+                    snapshotRepo: 'qtecomm-libs-snapshot-local',
+
+                )
+            }
+        }
+        stage('build the code')
+         {
+                 
+            rtMavenRun (
+                    // Tool name from Jenkins configuration.
+                    tool: 'mvn_tool',
+                    pom: 'pom.xml',
+                    goals: 'clean install',
+                    // Maven options.
+                    deployerId: 'spc-deployer',
+                )
+         }
        stage('reporting'){
            steps{
            junit testResults: '**/surefire-reports/*.xml'
            }
        }
 
-       stage("Quality Gate") {
-            steps {
-              timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true
-              }
-            }
-          }
+       
    }
 
    post{
